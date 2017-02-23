@@ -16,7 +16,7 @@ int sockfdl;
 pthread_t t;
 
 int client_sock;
-int intechos_socket;
+int intechos_sock;
 char client_is_present = 0;
 char intechos_is_present = 0;
 
@@ -28,6 +28,9 @@ void signalHandler(int sign)
     {
         pthread_cancel(t);
         close(sockfd);
+        close(sockfdl);
+        close(intechos_sock);
+        close(client_sock);
         exit(0);
     }
 }
@@ -72,9 +75,9 @@ int main(int argc, char ** argv) {
 
         struct sockaddr_un client_name;
         socklen_t client_name_len = sizeof(struct sockaddr_un);
-        intechos_socket = accept(sockfd, (struct sockaddr *) &client_name, &client_name_len);
+        intechos_sock = accept(sockfd, (struct sockaddr *) &client_name, &client_name_len);
 
-        if (intechos_socket < 0) {
+        if (intechos_sock < 0) {
             perror("ERROR opening INTechOS socket");
             close(sockfd);
             continue;
@@ -86,11 +89,11 @@ int main(int argc, char ** argv) {
             char rbuff[BUFFER_MAX_SIZE];
             ssize_t rbytes;
 
-            rbytes = recv(intechos_socket, rbuff, sizeof(rbuff), 0); // similar to read(), but return -1 if socket closed
+            rbytes = recv(intechos_sock, rbuff, sizeof(rbuff), 0); // similar to read(), but return -1 if socket closed
 
             if (rbytes < 0) {
                 perror("ERROR socket is unavailable");
-                close(intechos_socket);
+                close(intechos_sock);
                 goto listening;
             }
 
@@ -174,9 +177,9 @@ void* intechosToClient(void *null)
 
             if(intechos_is_present)
             {
-                if(write(intechos_socket, rbuff, sizeof(rbuff)) < 0)
+                if(write(intechos_sock, rbuff, sizeof(rbuff)) < 0)
                 {
-                    close(intechos_socket);
+                    close(intechos_sock);
                     intechos_is_present = 0;
                 }
             }
