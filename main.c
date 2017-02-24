@@ -84,6 +84,7 @@ int main(int argc, char ** argv) {
         }
 
         intechos_is_present = 1;
+        printf("INTechOS connected.\n");
 
         while (intechos_is_present) {
             char rbuff[BUFFER_MAX_SIZE];
@@ -109,6 +110,8 @@ int main(int argc, char ** argv) {
         }
 
         close(sockfd);
+        printf("INTechOS disconnected.\n");
+
     }
     return 0;
 }
@@ -157,6 +160,7 @@ void* intechosToClient(void *null)
         }
 
         client_is_present = 1;
+        printf("Client connected.\n");
 
         while (client_is_present)
         {
@@ -186,6 +190,7 @@ void* intechosToClient(void *null)
         }
 
         close(sockfdl);
+        printf("Client disconnected.\n");
 
     }
 
