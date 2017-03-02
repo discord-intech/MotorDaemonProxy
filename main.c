@@ -83,14 +83,26 @@ int main(int argc, char ** argv) {
             continue;
         }
 
+        ssize_t rbytes;
+
+        char rbuffv[12];
+        rbytes = recv(intechos_sock, rbuffv, sizeof(rbuffv), 0); // similar to read(), but return -1 if socket closed
+        rbuffv[11] = 0;
+
+        if(rbytes < 0 || strcmp(rbuffv, "motordaemon"))
+        {
+            printf("Wrong app connected to INTechOS socket\n");
+            close(intechos_sock);
+            goto listening;
+        }
+
         intechos_is_present = 1;
         printf("INTechOS connected.\n");
 
         while (intechos_is_present) {
-            char rbuff[BUFFER_MAX_SIZE];
-            ssize_t rbytes;
+            char * rbuff = (char *)malloc(sizeof(char)*BUFFER_MAX_SIZE);
 
-            rbytes = recv(intechos_sock, rbuff, sizeof(rbuff), 0); // similar to read(), but return -1 if socket closed
+            rbytes = recv(intechos_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE, 0); // similar to read(), but return -1 if socket closed
 
             if (rbytes < 0) {
                 perror("ERROR socket is unavailable");
@@ -98,15 +110,16 @@ int main(int argc, char ** argv) {
                 goto listening;
             }
 
-            for (ssize_t i = rbytes - 1; i < sizeof(rbuff); i++) rbuff[i] = '\0';
+            for (ssize_t i = rbytes - 1; i < sizeof(char)*BUFFER_MAX_SIZE; i++) rbuff[i] = '\0';
 
 
             if (client_is_present) {
-                if (write(client_sock, rbuff, sizeof(rbuff)) < 0) {
+                if (write(client_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0) {
                     close(client_sock);
                     client_is_present = 0;
                 }
             }
+            free(rbuff); rbuff = NULL;
         }
 
         close(sockfd);
@@ -159,15 +172,28 @@ void* intechosToClient(void *null)
             continue;
         }
 
+        ssize_t rbytes;
+
+        char rbuffv[12];
+        rbytes = recv(client_sock, rbuffv, sizeof(rbuffv), 0); // similar to read(), but return -1 if socket closed
+        rbuffv[11] = 0;
+
+        if(rbytes < 0 || strcmp(rbuffv, "motordaemon"))
+        {
+            printf("Wrong app connected to client socket\n");
+            close(client_sock);
+            goto listeningl;
+        }
+
         client_is_present = 1;
         printf("Client connected.\n");
 
         while (client_is_present)
         {
-            char rbuff[BUFFER_MAX_SIZE];
-            ssize_t rbytes;
+            char * rbuff = (char *)malloc(sizeof(char)*BUFFER_MAX_SIZE);
 
-            rbytes = recv(client_sock, rbuff, sizeof(rbuff), 0); // similar to read(), but return -1 if socket closed
+
+            rbytes = recv(client_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE, 0); // similar to read(), but return -1 if socket closed
 
             if(rbytes < 0)
             {
@@ -176,17 +202,18 @@ void* intechosToClient(void *null)
                 goto listeningl;
             }
 
-            for(ssize_t i=rbytes-1 ; i<sizeof(rbuff) ; i++) rbuff[i] = '\0';
+            for(ssize_t i=rbytes-1 ; i<sizeof(char)*BUFFER_MAX_SIZE ; i++) rbuff[i] = '\0';
 
 
             if(intechos_is_present)
             {
-                if(write(intechos_sock, rbuff, sizeof(rbuff)) < 0)
+                if(write(intechos_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0)
                 {
                     close(intechos_sock);
                     intechos_is_present = 0;
                 }
             }
+            free(rbuff); rbuff = NULL;
         }
 
         close(sockfdl);
