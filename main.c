@@ -15,6 +15,8 @@ int sockfd;
 int sockfdl;
 pthread_t t;
 
+int debugMode = 0;
+
 int client_sock;
 int intechos_sock;
 char client_is_present = 0;
@@ -39,6 +41,8 @@ int main(int argc, char ** argv) {
     if (signal(SIGINT, signalHandler) == SIG_ERR) {
         printf("\ncan't catch SIGINT\n");
     }
+
+    if(argc > 1 && !strcmp(argv[0], "-d")) debugMode = 1;
 
     pthread_create(&t, NULL, intechosToClient, NULL);
 
@@ -114,7 +118,8 @@ int main(int argc, char ** argv) {
 
 
             if (client_is_present) {
-                printf("M->C : %s\n", rbuff);
+                if(debugMode) printf("M->C : %s\n", rbuff);
+
                 if (write(client_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0) {
                     close(client_sock);
                     client_is_present = 0;
@@ -181,7 +186,7 @@ void* intechosToClient(void *null)
 
         if(rbytes < 0 || strcmp(rbuffv, "motordaemon"))
         {
-            printf("Wrong app connected to client socket\n");
+            if(debugMode) printf("Wrong app connected to client socket\n");
             close(client_sock);
             goto listeningl;
         }
