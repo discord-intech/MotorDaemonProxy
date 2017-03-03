@@ -114,6 +114,7 @@ int main(int argc, char ** argv) {
 
 
             if (client_is_present) {
+                printf("M->C : %s\n", rbuff);
                 if (write(client_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0) {
                     close(client_sock);
                     client_is_present = 0;
@@ -207,6 +208,7 @@ void* intechosToClient(void *null)
 
             if(intechos_is_present)
             {
+                printf("C->M : %s\n", rbuff);
                 if(write(intechos_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0)
                 {
                     close(intechos_sock);
