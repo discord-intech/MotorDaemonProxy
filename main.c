@@ -42,7 +42,7 @@ int main(int argc, char ** argv) {
         printf("\ncan't catch SIGINT\n");
     }
 
-    if(argc > 1 && !strcmp(argv[0], "-d")) debugMode = 1;
+    if(argc > 1 && !strcmp(argv[1], "-d")) debugMode = 1;
 
     pthread_create(&t, NULL, intechosToClient, NULL);
 
@@ -213,7 +213,7 @@ void* intechosToClient(void *null)
 
             if(intechos_is_present)
             {
-                printf("C->M : %s\n", rbuff);
+                if(debugMode) printf("C->M : %s\n", rbuff);
                 if(write(intechos_sock, rbuff, sizeof(char)*BUFFER_MAX_SIZE) < 0)
                 {
                     close(intechos_sock);
